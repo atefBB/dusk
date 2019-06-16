@@ -72,12 +72,11 @@ trait StartsSelenium
         if (static::$seleniumPath) {
             $seleniumPath = realpath(static::$seleniumPath);
         } else {
-            // @todo edit this path
             // should use v3.4 or above due to this issue
             // https://github.com/facebook/php-webdriver/issues/492
             // dowload link https://selenium-release.storage.googleapis.com/index.html?path=3.4/
             $seleniumPath = realpath(
-                __DIR__ . '/../storage/bin/selenium-server-standalone-3.4.0.jar'
+                __DIR__ . '/../bin/selenium-server-standalone-3.4.0.jar'
             );
         }
 
@@ -90,11 +89,11 @@ trait StartsSelenium
         if (static::$geckoDriverPath) {
             $geckoDriverPath = realpath(static::$geckoDriverPath);
         } else {
-            // my app will runs on linux
+            // use linux ninary
             // for other OS see: https://github.com/laravel/dusk/blob/5.0/src/OperatingSystem.php
             // https://github.com/laravel/dusk/blob/5.0/src/Chrome/ChromeProcess.php
             $geckoDriverPath = realpath(
-                __DIR__ . '/../storage/bin/geckodriver.exe'
+                __DIR__ . '/../bin/geckodriver'
             );
         }
         
@@ -108,10 +107,6 @@ trait StartsSelenium
             'java', "-Dwebdriver.gecko.driver=$geckoDriverPath",
             '-jar', $seleniumPath,
         ));
-        
-        if (env('HEADLESS_MODE')) {
-            $process->setEnv('DISPLAY', ':10');
-        }
         
         return $process;
     }
