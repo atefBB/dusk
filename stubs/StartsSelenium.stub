@@ -89,7 +89,7 @@ trait StartsSelenium
         if (static::$geckoDriverPath) {
             $geckoDriverPath = realpath(static::$geckoDriverPath);
         } else {
-            // use linux ninary
+            // use linux binary
             // for other OS see: https://github.com/laravel/dusk/blob/5.0/src/OperatingSystem.php
             // https://github.com/laravel/dusk/blob/5.0/src/Chrome/ChromeProcess.php
             $geckoDriverPath = realpath(
