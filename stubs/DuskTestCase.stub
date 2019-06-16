@@ -2,14 +2,17 @@
 
 namespace Tests;
 
-use Laravel\Dusk\TestCase as BaseTestCase;
-use Facebook\WebDriver\Chrome\ChromeOptions;
-use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\Firefox\FirefoxDriver;
+use Facebook\WebDriver\Firefox\FirefoxProfile;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
+use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Laravel\Dusk\TestCase;
+use Tests\CreatesApplication;
 
-abstract class DuskTestCase extends BaseTestCase
+abstract class DuskTestCase extends TestCase
 {
     use CreatesApplication;
+    use StartsSelenium;
 
     /**
      * Prepare for Dusk test execution.
@@ -19,7 +22,7 @@ abstract class DuskTestCase extends BaseTestCase
      */
     public static function prepare()
     {
-        static::startChromeDriver();
+        static::startSelenium();
     }
 
     /**
@@ -29,16 +32,63 @@ abstract class DuskTestCase extends BaseTestCase
      */
     protected function driver()
     {
-        $options = (new ChromeOptions)->addArguments([
-            '--disable-gpu',
-            '--headless',
-            '--window-size=1920,1080',
-        ]);
-
         return RemoteWebDriver::create(
-            'http://localhost:9515', DesiredCapabilities::chrome()->setCapability(
-                ChromeOptions::CAPABILITY, $options
-            )
+            'http://localhost:4444/wd/hub',
+            $this->setupCapabilities()
+        );
+    }
+
+    /**
+     * @return DesiredCapabilities
+     */
+    protected function setupCapabilities()
+    {
+        $desiredCapabilities = DesiredCapabilities::firefox();
+
+        $desiredCapabilities->setCapability(
+            FirefoxDriver::PROFILE,
+            $this->setupFirefoxProfile()
+        );
+
+        $desiredCapabilities->setCapability(
+            'acceptInsecureCerts', true
+        );
+
+        return $desiredCapabilities;
+    }
+
+    /**
+     * Set up firefox profile.
+     *
+     * @return FirefoxProfile
+     */
+    protected function setupFirefoxProfile()
+    {
+        $profile = new FirefoxProfile();
+
+        $this->configureLanguage($profile);
+
+        return $profile;
+    }
+
+    /**
+     * Configure language interface of firefox.
+     *
+     * @param FirefoxProfile $profile
+     */
+    protected function configureLanguage($profile)
+    {
+        $profile->setPreference(
+            'intl.locale.matchOS', false
+        );
+        
+        $profile->setPreference(
+            'general.useragent.locale', 'en'
+        );
+        
+        $profile->setPreference(
+            'intl.accept_languages', 
+            'en-US, en'
         );
     }
 }
