@@ -27,13 +27,9 @@ class InstallCommand extends Command
      */
     public function handle()
     {
-        if (! is_dir(base_path('tests/Browser/Pages'))) {
-            mkdir(base_path('tests/Browser/Pages'), 0755, true);
-        }
+        $this->createPagesDirectory();
 
-        if (! is_dir(base_path('tests/Browser/Components'))) {
-            mkdir(base_path('tests/Browser/Components'), 0755, true);
-        }
+        $this->createComponentsDirectory();
 
         if (! is_dir(base_path('tests/Browser/screenshots'))) {
             $this->createScreenshotsDirectory();
@@ -43,18 +39,7 @@ class InstallCommand extends Command
             $this->createConsoleDirectory();
         }
 
-        $stubs = [
-            'ExampleTest.stub' => base_path('tests/Browser/ExampleTest.php'),
-            'HomePage.stub' => base_path('tests/Browser/Pages/HomePage.php'),
-            'DuskTestCase.stub' => base_path('tests/DuskTestCase.php'),
-            'Page.stub' => base_path('tests/Browser/Pages/Page.php'),
-        ];
-
-        foreach ($stubs as $stub => $file) {
-            if (! is_file($file)) {
-                copy(__DIR__.'/../../stubs/'.$stub, $file);
-            }
-        }
+        $this->copyStubs();
 
         $this->info('Dusk scaffolding installed successfully.');
 
@@ -62,7 +47,31 @@ class InstallCommand extends Command
 
         $this->call('dusk:chrome-driver', ['--all' => true]);
     }
-
+    
+    /**
+     * Create `Pages` directory.
+     *
+     * @return void
+     */
+    protected function createPagesDirectory() 
+    {
+        if (! is_dir(base_path('tests/Browser/Pages'))) {
+            mkdir(base_path('tests/Browser/Pages'), 0755, true);
+        }
+    }
+    
+    /**
+     * Create `Components` directory.
+     *
+     * @return void
+     */
+    protected function createComponentsDirectory() 
+    {
+       if (! is_dir(base_path('tests/Browser/Components'))) {
+            mkdir(base_path('tests/Browser/Components'), 0755, true);
+        }
+    }
+    
     /**
      * Create the screenshots directory.
      *
@@ -89,5 +98,26 @@ class InstallCommand extends Command
         file_put_contents(base_path('tests/Browser/console/.gitignore'), '*
 !.gitignore
 ');
+    }
+    
+    /**
+     * Copy stubs.
+     *
+     * @return void
+     */
+    protected function copyStubs() 
+    {
+        $stubs = [
+            'ExampleTest.stub' => base_path('tests/Browser/ExampleTest.php'),
+            'HomePage.stub' => base_path('tests/Browser/Pages/HomePage.php'),
+            'DuskTestCase.stub' => base_path('tests/DuskTestCase.php'),
+            'Page.stub' => base_path('tests/Browser/Pages/Page.php'),
+        ];
+
+        foreach ($stubs as $stub => $file) {
+            if (! is_file($file)) {
+                copy(__DIR__.'/../../stubs/'.$stub, $file);
+            }
+        }
     }
 }
