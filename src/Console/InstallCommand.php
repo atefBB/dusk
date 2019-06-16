@@ -111,6 +111,7 @@ class InstallCommand extends Command
             'ExampleTest.stub' => base_path('tests/Browser/ExampleTest.php'),
             'HomePage.stub' => base_path('tests/Browser/Pages/HomePage.php'),
             'DuskTestCase.stub' => base_path('tests/DuskTestCase.php'),
+            'StartsSelenium.stub' => base_path('tests/StartsSelenium.php'),
             'Page.stub' => base_path('tests/Browser/Pages/Page.php'),
         ];
 
