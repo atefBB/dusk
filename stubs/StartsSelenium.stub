@@ -1,0 +1,140 @@
+<?php
+
+namespace Tests;
+
+use RuntimeException;
+use Symfony\Component\Process\Process;
+
+trait StartsSelenium
+{
+    /**
+     * The path to the custom standalone selenium server binary.
+     *
+     * @var string|null
+     */
+    protected static $seleniumPath;
+
+    /**
+     * The path to the custom geckodriver.
+     *
+     * @var string|null
+     */
+    protected static $geckoDriverPath;
+
+    /**
+     * The selenium server process instance.
+     *
+     * @var Process
+     */
+    protected static $seleniumProcess;
+
+    /**
+     * Start the selenium server process.
+     *
+     * @throws RuntimeException if the selenium server or geckodriver file path
+     * doesn't exist.
+     *
+     * @return void
+     */
+    public static function startSelenium()
+    {
+        static::$seleniumProcess = static::buildSeleniumProcess();
+
+        static::$seleniumProcess->start();
+
+        static::afterClass(function () {
+            static::stopSelenium();
+        });
+    }
+
+    /**
+     * Stop the selenium server process.
+     *
+     * @return void
+     */
+    public static function stopSelenium()
+    {
+        if (static::$seleniumProcess) {
+            static::$seleniumProcess->stop();
+        }
+    }
+
+    /**
+     * Build the process to run the selenium server.
+     *
+     * @throws RuntimeException if the selenium server or geckodriver file path
+     * doesn't exist.
+     *
+     * @return Process
+     */
+    protected static function buildSeleniumProcess(): Process
+    {
+        if (static::$seleniumPath) {
+            $seleniumPath = realpath(static::$seleniumPath);
+        } else {
+            // @todo edit this path
+            // should use v3.4 or above due to this issue
+            // https://github.com/facebook/php-webdriver/issues/492
+            // dowload link https://selenium-release.storage.googleapis.com/index.html?path=3.4/
+            $seleniumPath = realpath(
+                __DIR__ . '/../storage/bin/selenium-server-standalone-3.4.0.jar'
+            );
+        }
+
+        if ($seleniumPath === false) {
+            throw new RuntimeException(
+                "Invalid path to selenium server [{$seleniumPath}]."
+            );
+        }
+
+        if (static::$geckoDriverPath) {
+            $geckoDriverPath = realpath(static::$geckoDriverPath);
+        } else {
+            // my app will runs on linux
+            // for other OS see: https://github.com/laravel/dusk/blob/5.0/src/OperatingSystem.php
+            // https://github.com/laravel/dusk/blob/5.0/src/Chrome/ChromeProcess.php
+            $geckoDriverPath = realpath(
+                __DIR__ . '/../storage/bin/geckodriver.exe'
+            );
+        }
+        
+        if ($geckoDriverPath === false) {
+            throw new RuntimeException(
+                "Invalid path to geckodriver [{$geckoDriverPath}]."
+            );
+        }
+        
+        $process = new Process(array(
+            'java', "-Dwebdriver.gecko.driver=$geckoDriverPath",
+            '-jar', $seleniumPath,
+        ));
+        
+        if (env('HEADLESS_MODE')) {
+            $process->setEnv('DISPLAY', ':10');
+        }
+        
+        return $process;
+    }
+
+    /**
+     * Set the path to the custom selenium server.
+     *
+     * @param  string $path
+     * @return void
+     */
+    public static function useSelenium(string $path)
+    {
+        static::$seleniumPath = $path;
+    }
+    
+    /**
+     * Set the path to the custom gecko driver.
+     *
+     * @param  string $path
+     * @return void
+     */
+    public static function useGeckoDriver(string $path)
+    {
+        static::$geckoDriverPath = $path;
+    }
+}
